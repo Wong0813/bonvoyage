@@ -48,32 +48,41 @@ function saveBase64Image(dataStr) {
 
 // Database configuration
 const dbConfig = {
-  host: 'localhost',
-  port: 3306,
-  user: 'root',
-  password: '',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '3306'),
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'bonvoyage',
 };
-const dbName = 'bonvoyage';
 
 let pool;
 
 async function initDb() {
   try {
-    // 1. Connect without database to create if not exists
-    const connection = await mysql.createConnection(dbConfig);
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    await connection.end();
+    // Only attempt to auto-create database if we are running on localhost
+    if (dbConfig.host === 'localhost') {
+      const { database, ...connectConfig } = dbConfig;
+      const connection = await mysql.createConnection(connectConfig);
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\``);
+      await connection.end();
+    }
 
-    // 2. Create connection pool with database name
-    pool = mysql.createPool({
+    // Create connection pool
+    const poolConfig = {
       ...dbConfig,
-      database: dbName,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
-    });
+    };
 
-    console.log('Connected to MySQL connection pool.');
+    // If using a cloud database, SSL might be required
+    if (process.env.DB_SSL === 'true') {
+      poolConfig.ssl = { rejectUnauthorized: false };
+    }
+
+    pool = mysql.createPool(poolConfig);
+
+    console.log(`Connected to MySQL connection pool (${dbConfig.host}).`);
     await createTablesAndSeed();
   } catch (err) {
     console.error('Database initialization failed:', err);
