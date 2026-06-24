@@ -695,7 +695,7 @@ app.post('/api/auth/register-customer', async (req, res) => {
 
     const memberId = await generateId('MEM', 'users', 'member_id');
     await pool.query(
-      'INSERT INTO users (member_id, username, password, email, role, full_name, status) VALUES (?, ?, ?, ?, "user", ?, "active")',
+      "INSERT INTO users (member_id, username, password, email, role, full_name, status) VALUES (?, ?, ?, ?, 'user', ?, 'active')",
       [memberId, username, password, email, fullName]
     );
     res.json({ success: true });
@@ -712,7 +712,7 @@ app.post('/api/auth/register-agent', async (req, res) => {
 
     const memberId = await generateId('MEM', 'users', 'member_id');
     const [userRes] = await pool.query(
-      'INSERT INTO users (member_id, username, password, email, role, full_name, phone, status) VALUES (?, ?, ?, ?, "agent", ?, ?, "active")',
+      "INSERT INTO users (member_id, username, password, email, role, full_name, phone, status) VALUES (?, ?, ?, ?, 'agent', ?, ?, 'active')",
       [memberId, username, password, email, companyName, phone]
     );
     const userId = userRes.insertId;
@@ -1314,7 +1314,7 @@ app.post('/api/reviews', async (req, res) => {
     );
 
     // Update agent average rating
-    const [avgRes] = await connection.query('SELECT AVG(rating) as avg_r FROM reviews WHERE agent_id = ? AND status = "active"', [agentId]);
+    const [avgRes] = await connection.query("SELECT AVG(rating) as avg_r FROM reviews WHERE agent_id = ? AND status = 'active'", [agentId]);
     const avg = parseFloat(avgRes[0].avg_r || 0);
     await connection.query('UPDATE agent_profiles SET rating = ? WHERE id = ?', [avg, agentId]);
 
@@ -1356,7 +1356,7 @@ app.put('/api/reviews/:id/moderate', async (req, res) => {
       const [rows] = await connection.query('SELECT agent_id FROM reviews WHERE id = ?', [req.params.id]);
       if (rows.length > 0) {
         const agentId = rows[0].agent_id;
-        const [avgRes] = await connection.query('SELECT AVG(rating) as avg_r FROM reviews WHERE agent_id = ? AND status = "active"', [agentId]);
+        const [avgRes] = await connection.query("SELECT AVG(rating) as avg_r FROM reviews WHERE agent_id = ? AND status = 'active'", [agentId]);
         const avg = parseFloat(avgRes[0].avg_r || 0);
         await connection.query('UPDATE agent_profiles SET rating = ? WHERE id = ?', [avg, agentId]);
       }
@@ -1602,7 +1602,7 @@ app.post('/api/notifications/broadcast', async (req, res) => {
       const [users] = await connection.query("SELECT id FROM users WHERE role = 'user' AND status = 'active'");
       for (const u of users) {
         await connection.query(
-          'INSERT INTO notifications (user_id, target_role, title, message) VALUES (?, "user", ?, ?)',
+          "INSERT INTO notifications (user_id, target_role, title, message) VALUES (?, 'user', ?, ?)",
           [u.id, title, message]
         );
       }
@@ -1611,7 +1611,7 @@ app.post('/api/notifications/broadcast', async (req, res) => {
       const [agents] = await connection.query('SELECT id FROM agent_profiles');
       for (const a of agents) {
         await connection.query(
-          'INSERT INTO notifications (agent_id, target_role, title, message) VALUES (?, "agent", ?, ?)',
+          "INSERT INTO notifications (agent_id, target_role, title, message) VALUES (?, 'agent', ?, ?)",
           [a.id, title, message]
         );
       }
@@ -1983,7 +1983,7 @@ app.post('/api/admin/users', async (req, res) => {
     const memberId = await generateId('MEM', 'users', 'member_id');
     const [userRes] = await connection.query(
       `INSERT INTO users (member_id, username, password, email, role, full_name, phone, ic_passport, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, "active")`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
       [memberId, username, password, email, role, fullName, phone || '', icPassport || '']
     );
     const userId = userRes.insertId;
