@@ -8,7 +8,7 @@ class ApiClient {
   static final ApiClient instance = ApiClient._();
 
   static String get baseUrl {
-    if (kIsWeb) return 'http://localhost:3000';
+    if (kIsWeb) return 'https://bonvoyage-backend-tcc3.onrender.com';
     if (Platform.isAndroid) return 'http://10.0.2.2:3000';
     return 'http://localhost:3000';
   }
