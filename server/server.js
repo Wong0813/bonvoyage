@@ -1182,7 +1182,7 @@ app.post('/api/bookings', async (req, res) => {
 
     // Create notification
     await connection.query(
-      'INSERT INTO notifications (user_id, title, message) VALUES (?, "Booking Submitted", ?)',
+      "INSERT INTO notifications (user_id, title, message) VALUES (?, 'Booking Submitted', ?)",
       [userId, `Your booking #${bookingId} has been submitted. Please complete payment.`]
     );
 
@@ -1204,7 +1204,7 @@ app.post('/api/bookings/:id/pay', async (req, res) => {
       [req.params.id, userId]
     );
     await pool.query(
-      'INSERT INTO notifications (user_id, title, message) VALUES (?, "Payment Confirmed", ?)',
+      "INSERT INTO notifications (user_id, title, message) VALUES (?, 'Payment Confirmed', ?)",
       [userId, `Payment for booking #${req.params.id} confirmed. Your trip is booked!`]
     );
     res.json({ success: true });
@@ -1228,7 +1228,7 @@ app.put('/api/bookings/:id/status', async (req, res) => {
     const [rows] = await pool.query('SELECT user_id FROM bookings WHERE id = ?', [req.params.id]);
     if (rows.length > 0) {
       await pool.query(
-        'INSERT INTO notifications (user_id, title, message) VALUES (?, "Booking Update", ?)',
+        "INSERT INTO notifications (user_id, title, message) VALUES (?, 'Booking Update', ?)",
         [rows[0].user_id, `Booking #${req.params.id} status changed to ${status}.`]
       );
     }
