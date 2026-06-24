@@ -39,4 +39,18 @@ class UserModel {
       status: row['status'] ?? 'active',
     );
   }
+
+  Map<String, String?> toRow() {
+    return {
+      'id': id.toString(),
+      'member_id': memberId,
+      'username': username,
+      'email': email,
+      'role': role,
+      'full_name': fullName,
+      'ic_passport': icPassport,
+      'phone': phone,
+      'status': status,
+    };
+  }
 }

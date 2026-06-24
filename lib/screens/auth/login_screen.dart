@@ -8,6 +8,8 @@ import '../../utils/app_theme.dart';
 import '../customer/customer_home.dart';
 import '../agent/agent_home.dart';
 import '../admin/admin_home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -42,6 +44,21 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       vsync: this,
     )..repeat();
     _initDb();
+    _checkAutoLogin();
+  }
+
+  Future<void> _checkAutoLogin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('logged_in_user');
+      if (userJson != null) {
+        final Map<String, dynamic> userMap = jsonDecode(userJson);
+        final user = UserModel.fromRow(Map<String, String?>.from(userMap));
+        if (mounted) {
+          _navigate(user);
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> _initDb() async {
@@ -112,6 +129,8 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           setState(() => _errorMessage = 'Invalid username or password.');
           return;
         }
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('logged_in_user', jsonEncode(user.toRow()));
         _navigate(user);
       }
     } catch (e) {
@@ -132,15 +151,19 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     } else {
       dest = CustomerHome(user: user);
     }
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, _, _) => dest,
-        transitionDuration: const Duration(milliseconds: 500),
-        transitionsBuilder: (_, anim, _, child) =>
-            FadeTransition(opacity: anim, child: child),
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, _, _) => dest,
+            transitionDuration: const Duration(milliseconds: 500),
+            transitionsBuilder: (_, anim, _, child) =>
+                FadeTransition(opacity: anim, child: child),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -349,6 +372,10 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
 Future<void> logout(BuildContext context) async {
   await DatabaseService.instance.close();
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('logged_in_user');
+  } catch (_) {}
   if (!context.mounted) return;
   Navigator.pushReplacement(
     context,
