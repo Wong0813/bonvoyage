@@ -8,6 +8,8 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
+app.use(cors());
+
 // Serve static files from 'uploads' folder
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -15,7 +17,6 @@ if (!fs.existsSync(uploadsDir)) {
 }
 app.use('/uploads', express.static(uploadsDir));
 
-app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
